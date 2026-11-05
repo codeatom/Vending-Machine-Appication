@@ -65,6 +65,7 @@ namespace service {
         -int balance
         -ProductRepository repository
         -Set~Integer~ acceptedCoins
+        +VendingMachineImpl(repository: ProductRepository)
         +insertCoin(int) boolean
         +purchaseProduct(int) Product
         +returnChange() int
@@ -75,8 +76,10 @@ namespace service {
 
 class ConsoleUI {
     -VendingMachine vendingMachine
+    +start() void
+    -displayProducts() void
+    -displayBalance() void
 }
-
 
 class Main {
     +main(String[]) void
