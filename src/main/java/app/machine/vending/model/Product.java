@@ -50,6 +50,7 @@ public abstract class Product {
         if (quantity <= 0) {
             throw new IllegalStateException("Product is out of stock.");
         }
+
         quantity--;
     }
 }
