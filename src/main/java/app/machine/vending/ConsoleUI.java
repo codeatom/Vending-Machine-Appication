@@ -1,4 +1,3 @@
-
 package app.machine.vending;
 
 import app.machine.vending.model.Product;
@@ -52,8 +51,7 @@ public class ConsoleUI {
                 System.out.println("Please enter a valid number.");
             }
 
-            System.out.println("Balance: " +
-                    vendingMachine.getBalance() + " kr");
+            System.out.println("Balance: " + vendingMachine.getBalance() + " kr");
         }
 
         System.out.println("\nThank you for using Lexicon Vending Machine!");
@@ -92,9 +90,7 @@ public class ConsoleUI {
         if (accepted) {
             System.out.println("Coin accepted.");
         } else {
-            System.out.println(
-                    "Invalid coin. Only 1, 2, 5, 10, 20, 50 kr accepted."
-            );
+            System.out.println("Invalid coin. Only 1, 2, 5, 10, 20, 50 kr accepted.");
         }
     }
 
@@ -126,9 +122,7 @@ public class ConsoleUI {
         if (change == 0) {
             System.out.println("No balance to return.");
         } else {
-            System.out.println(
-                    "Change returned: " + change + " kr"
-            );
+            System.out.println("Change returned: " + change + " kr");
         }
     }
 }

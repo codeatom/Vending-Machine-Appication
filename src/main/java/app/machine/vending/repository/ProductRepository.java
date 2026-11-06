@@ -1,4 +1,3 @@
-
 package app.machine.vending.repository;
 
 import app.machine.vending.model.Product;

@@ -1,4 +1,3 @@
-
 package app.machine.vending.repository;
 
 import app.machine.vending.model.Product;
@@ -14,9 +13,7 @@ public class InMemoryProductRepository implements ProductRepository {
         Objects.requireNonNull(product, "Product cannot be null.");
 
         if (products.containsKey(product.getId())) {
-            throw new IllegalArgumentException(
-                    "Product ID already exists: " + product.getId()
-            );
+            throw new IllegalArgumentException("Product ID already exists: " + product.getId());
         }
 
         products.put(product.getId(), product);
@@ -29,8 +26,6 @@ public class InMemoryProductRepository implements ProductRepository {
 
     @Override
     public List<Product> findAll() {
-        return Collections.unmodifiableList(
-                new ArrayList<>(products.values())
-        );
+        return Collections.unmodifiableList(new ArrayList<>(products.values()));
     }
 }

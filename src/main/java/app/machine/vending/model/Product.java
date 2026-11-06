@@ -1,4 +1,3 @@
-
 package app.machine.vending.model;
 
 public abstract class Product {
@@ -12,12 +11,15 @@ public abstract class Product {
         if (id <= 0) {
             throw new IllegalArgumentException("Product ID must be positive.");
         }
+
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Product name cannot be empty.");
         }
+
         if (price <= 0) {
             throw new IllegalArgumentException("Price must be positive.");
         }
+
         if (quantity < 0) {
             throw new IllegalArgumentException("Quantity cannot be negative.");
         }

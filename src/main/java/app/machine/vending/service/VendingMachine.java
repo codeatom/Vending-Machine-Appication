@@ -1,4 +1,3 @@
-
 package app.machine.vending.service;
 
 import app.machine.vending.model.Product;
