@@ -30,7 +30,8 @@ public class ConsoleUI {
             System.out.println("[2] Select product");
             System.out.println("[3] Return change");
             System.out.println("[4] Display products");
-            System.out.println("[5] Exit");
+            System.out.println("[5] Display transaction history");
+            System.out.println("[6] Exit");
 
             System.out.print("\n> ");
 
@@ -42,7 +43,8 @@ public class ConsoleUI {
                     case "2" -> selectProduct();
                     case "3" -> returnChange();
                     case "4" -> displayProducts();
-                    case "5" -> running = false;
+                    case "5" -> displayTransactionHistory();
+                    case "6" -> running = false;
                     default -> System.out.println(
                             "Invalid option. Please try again."
                     );
@@ -124,5 +126,23 @@ public class ConsoleUI {
         } else {
             System.out.println("Change returned: " + change + " kr");
         }
+    }
+
+    private void displayTransactionHistory() {
+
+        System.out.println("\n========== TRANSACTION HISTORY ==========");
+
+        var transactions = vendingMachine.getTransactionHistory();
+
+        if (transactions.isEmpty()) {
+            System.out.println("No transactions recorded.");
+        } else {
+
+            for (var transaction : transactions) {
+                System.out.println(transaction);
+            }
+        }
+
+        System.out.println("=========================================");
     }
 }

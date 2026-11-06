@@ -55,4 +55,11 @@ public abstract class Product {
 
         quantity--;
     }
+
+    public void increaseQuantity(int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Restock amount must be positive.");
+        }
+        quantity = Math.addExact(quantity, amount);
+    }
 }

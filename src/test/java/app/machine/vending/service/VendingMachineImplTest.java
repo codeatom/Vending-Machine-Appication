@@ -11,7 +11,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class VendingMachineImplTest {
-    private ProductRepository repository;
+    private ProductRepository productRepository;
+    private TransactionRepository transactionRepository;
     private VendingMachineImpl vendingMachine;
 
     private Snack chips;
@@ -20,17 +21,18 @@ class VendingMachineImplTest {
 
     @BeforeEach
     void setUp() {
-        repository = new InMemoryProductRepository();
+        productRepository = new InMemoryProductRepository();
+        transactionRepository = new InMemoryTransactionRepository();
 
         chips = new Snack(1, "Chips", 20, 3, 130);
         cola = new Beverage(2, "Cola", 15, 3, 330);
         apple = new Fruit(3, "Apple", 10, 8, "Sweden");
 
-        repository.addProduct(chips);
-        repository.addProduct(cola);
-        repository.addProduct(apple);
+        productRepository.addProduct(chips);
+        productRepository.addProduct(cola);
+        productRepository.addProduct(apple);
 
-        vendingMachine = new VendingMachineImpl(repository);
+        vendingMachine = new VendingMachineImpl(productRepository, transactionRepository);
     }
 
     // Insert valid coin.
@@ -82,7 +84,7 @@ class VendingMachineImplTest {
         Snack emptySnack =
                 new Snack(4, "Empty Chips", 20, 0, 130);
 
-        repository.addProduct(emptySnack);
+        productRepository.addProduct(emptySnack);
 
         vendingMachine.insertCoin(20);
 
@@ -168,4 +170,128 @@ class VendingMachineImplTest {
         assertEquals(0, change);
         assertEquals(0, vendingMachine.getBalance());
     }
+
+    // Valid coin should create transaction.
+    @Test
+    void insertCoinShouldRecordTransaction() {
+        vendingMachine.insertCoin(10);
+
+        List<Transaction> history = vendingMachine.getTransactionHistory();
+
+        assertEquals(1, history.size());
+        assertEquals("COIN INSERTED", history.get(0).getType());
+        assertEquals(10, history.get(0).getAmount());
+    }
+
+    // Invalid coin should not create transaction.
+    @Test
+    void invalidCoinShouldNotRecordTransaction() {
+        vendingMachine.insertCoin(7);
+
+        List<Transaction> history = vendingMachine.getTransactionHistory();
+
+        assertTrue(history.isEmpty());
+    }
+
+    // Successful purchase should create transaction.
+    @Test
+    void purchaseShouldRecordTransaction() {
+        vendingMachine.insertCoin(20);
+
+        vendingMachine.purchaseProduct(1);
+
+        List<Transaction> history = vendingMachine.getTransactionHistory();
+
+        assertEquals(2, history.size());
+
+        Transaction purchase = history.get(1);
+
+        assertEquals("PURCHASE", purchase.getType());
+        assertEquals("Chips (ID: 1)", purchase.getDescription());
+        assertEquals(20, purchase.getAmount());
+    }
+
+    // Failed purchase should not create purchase transaction.
+    @Test
+    void failedPurchaseShouldNotRecordPurchaseTransaction() {
+        vendingMachine.insertCoin(10);
+
+        assertThrows(IllegalStateException.class,
+                () -> vendingMachine.purchaseProduct(1)
+        );
+
+        List<Transaction> history = vendingMachine.getTransactionHistory();
+
+        // Only the inserted coin should be recorded.
+        assertEquals(1, history.size());
+        assertEquals("COIN INSERTED", history.get(0).getType());
+    }
+
+    // Returned change should create transaction.
+    @Test
+    void returnChangeShouldRecordTransaction() {
+        vendingMachine.insertCoin(20);
+        vendingMachine.insertCoin(10);
+
+        vendingMachine.returnChange();
+
+        List<Transaction> history = vendingMachine.getTransactionHistory();
+
+        assertEquals(3, history.size());
+
+        Transaction change = history.get(2);
+
+        assertEquals("CHANGE RETURNED", change.getType());
+        assertEquals(30, change.getAmount());
+    }
+
+    // Zero change should not create transaction.
+    @Test
+    void zeroChangeShouldNotRecordTransaction() {
+        vendingMachine.returnChange();
+
+        List<Transaction> history = vendingMachine.getTransactionHistory();
+
+        assertTrue(history.isEmpty());
+    }
+
+    // Transaction history should preserve transaction order.
+    @Test
+    void transactionHistoryShouldPreserveOrder() {
+        vendingMachine.insertCoin(10);
+        vendingMachine.insertCoin(20);
+        vendingMachine.returnChange();
+
+        List<Transaction> history = vendingMachine.getTransactionHistory();
+
+        assertEquals(3, history.size());
+
+        assertEquals("COIN INSERTED", history.get(0).getType());
+
+        assertEquals("COIN INSERTED", history.get(1).getType());
+
+        assertEquals("CHANGE RETURNED", history.get(2).getType());
+    }
+
+    // Transaction history should be immutable.
+    @Test
+    void transactionHistoryShouldBeUnmodifiable() {
+        List<Transaction> history = vendingMachine.getTransactionHistory();
+
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> history.add(new Transaction("TEST", "Test transaction", 10))
+        );
+    }
+
+    // Transaction should contain timestamp.
+    @Test
+    void transactionShouldHaveTimestamp() {
+        vendingMachine.insertCoin(10);
+
+        Transaction transaction = vendingMachine.getTransactionHistory().get(0);
+
+        assertNotNull(transaction.getTimestamp());
+    }
+
 }

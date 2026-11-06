@@ -12,15 +12,16 @@ public class Main {
         Product cola = new Beverage(2, "Cola", 20, 3, 330);
         Product apple = new Fruit(3, "Apple", 10, 8, "Sweden");
 
-        // Create repository.
-        ProductRepository repository = new InMemoryProductRepository();
+        // Create repositories.
+        ProductRepository productRepository = new InMemoryProductRepository();
+        TransactionRepository transactionRepository = new InMemoryTransactionRepository();
 
-        repository.addProduct(chips);
-        repository.addProduct(cola);
-        repository.addProduct(apple);
+        productRepository.addProduct(chips);
+        productRepository.addProduct(cola);
+        productRepository.addProduct(apple);
 
         // Create vending machine.
-        VendingMachine vendingMachine = new VendingMachineImpl(repository);
+        VendingMachine vendingMachine = new VendingMachineImpl(productRepository, transactionRepository);
 
         // Start console UI.
         ConsoleUI consoleUI = new ConsoleUI(vendingMachine);
