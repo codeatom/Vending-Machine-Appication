@@ -14,12 +14,19 @@ public class VendingMachineImpl implements VendingMachine {
     private int balance;
     private final ProductRepository repository;
     private final TransactionRepository transactionRepository;
+    private final AdminService adminService;
 
     private final Set<Integer> acceptedCoins = Set.of(1, 2, 5, 10, 20, 50);
 
-    public VendingMachineImpl(ProductRepository repository, TransactionRepository transactionRepository) {
-        this.repository = Objects.requireNonNull(repository, "Repository cannot be null.");
-        this.transactionRepository = Objects.requireNonNull(transactionRepository, "Transaction repository cannot be null.");
+    public VendingMachineImpl(
+            ProductRepository repository,
+            TransactionRepository transactionRepository,
+            AdminService adminService) {
+
+        this.repository = Objects.requireNonNull(repository);
+        this.transactionRepository = Objects.requireNonNull(transactionRepository);
+        this.adminService = Objects.requireNonNull(adminService);
+
         this.balance = 0;
     }
 
@@ -103,6 +110,10 @@ public class VendingMachineImpl implements VendingMachine {
     @Override
     public void stockProduct(int id, int quantity) {
 
+        if (!adminService.isAuthenticated()) {
+            throw new SecurityException("Access denied. Administrator login required.");
+        }
+
         if (quantity <= 0) {
             throw new IllegalArgumentException(
                     "Stocking quantity must be positive."
@@ -114,10 +125,8 @@ public class VendingMachineImpl implements VendingMachine {
                         "Product with ID " + id + " does not exist."
                 ));
 
-        // Increase product stock.
         product.increaseQuantity(quantity);
 
-        // Record stocking transaction.
         transactionRepository.addTransaction(
                 new Transaction(
                         "STOCKING",

@@ -20,11 +20,14 @@ public class Main {
         productRepository.addProduct(cola);
         productRepository.addProduct(apple);
 
+        // Create services.
+        AdminService adminService = new AdminServiceImpl();
+
         // Create vending machine.
-        VendingMachine vendingMachine = new VendingMachineImpl(productRepository, transactionRepository);
+        VendingMachine vendingMachine = new VendingMachineImpl(productRepository, transactionRepository, adminService);
 
         // Start console UI.
-        ConsoleUI consoleUI = new ConsoleUI(vendingMachine);
+        ConsoleUI consoleUI = new ConsoleUI(vendingMachine, adminService);
 
         consoleUI.start();
     }

@@ -14,6 +14,7 @@ class VendingMachineImplTest {
     private ProductRepository productRepository;
     private TransactionRepository transactionRepository;
     private VendingMachineImpl vendingMachine;
+    private AdminService adminService;
 
     private Snack chips;
     private Beverage cola;
@@ -23,6 +24,7 @@ class VendingMachineImplTest {
     void setUp() {
         productRepository = new InMemoryProductRepository();
         transactionRepository = new InMemoryTransactionRepository();
+        adminService = new AdminServiceImpl();
 
         chips = new Snack(1, "Chips", 20, 3, 130);
         cola = new Beverage(2, "Cola", 15, 3, 330);
@@ -32,7 +34,11 @@ class VendingMachineImplTest {
         productRepository.addProduct(cola);
         productRepository.addProduct(apple);
 
-        vendingMachine = new VendingMachineImpl(productRepository, transactionRepository);
+        vendingMachine = new VendingMachineImpl(productRepository, transactionRepository, adminService);
+    }
+
+    private void loginAsAdmin() {
+        assertTrue(adminService.login("admin", "admin123"));
     }
 
     // Insert valid coin.
@@ -294,17 +300,22 @@ class VendingMachineImplTest {
         assertNotNull(transaction.getTimestamp());
     }
 
-    // Stock product should increase in quantity
+    // Stock product should increase in quantity.
     @Test
     void stockProductShouldIncreaseQuantity() {
+        loginAsAdmin();
+
         vendingMachine.stockProduct(1, 5);
 
         assertEquals(8, chips.getQuantity());
     }
 
-    // Stock product should record transaction
+
+    // Stock product should record transaction.
     @Test
     void stockProductShouldRecordTransaction() {
+        loginAsAdmin();
+
         vendingMachine.stockProduct(1, 5);
 
         List<Transaction> history =
@@ -313,15 +324,19 @@ class VendingMachineImplTest {
         assertEquals(1, history.size());
         assertEquals("STOCKING", history.get(0).getType());
         assertEquals(5, history.get(0).getAmount());
+
         assertEquals(
                 "Chips (ID: 1), added: 5",
                 history.get(0).getDescription()
         );
     }
 
-    // Stock product should reject invalid quantity
+
+    // Stock product should reject invalid quantity.
     @Test
     void stockProductShouldRejectInvalidQuantity() {
+        loginAsAdmin();
+
         assertThrows(
                 IllegalArgumentException.class,
                 () -> vendingMachine.stockProduct(1, 0)
@@ -335,30 +350,82 @@ class VendingMachineImplTest {
         assertEquals(3, chips.getQuantity());
     }
 
-    // Stock product should fail when a product does not exist
+
+    // Stock product should fail when product does not exist.
     @Test
     void stockProductShouldFailWhenProductDoesNotExist() {
+        loginAsAdmin();
+
         assertThrows(
                 IllegalArgumentException.class,
                 () -> vendingMachine.stockProduct(99, 5)
         );
     }
 
-    // Multiple stocking operations should accumulate quantity
+
+    // Multiple stocking operations should accumulate quantity.
     @Test
     void multipleStockingOperationsShouldAccumulateQuantity() {
+        loginAsAdmin();
+
         vendingMachine.stockProduct(1, 5);
         vendingMachine.stockProduct(1, 10);
 
         assertEquals(18, chips.getQuantity());
     }
 
-    // Stock product should reject integer overflow
+    // Stock product should reject integer overflow.
     @Test
     void stockProductShouldRejectIntegerOverflow() {
+        loginAsAdmin();
+
         assertThrows(
                 ArithmeticException.class,
                 () -> vendingMachine.stockProduct(1, Integer.MAX_VALUE)
+        );
+
+        assertEquals(3, chips.getQuantity());
+    }
+
+    @Test
+    void stockProductShouldRequireAdminAuthentication() {
+
+        assertThrows(
+                SecurityException.class,
+                () -> vendingMachine.stockProduct(1, 5)
+        );
+
+        assertEquals(3, chips.getQuantity());
+    }
+
+    @Test
+    void authenticatedAdminShouldBeAbleToStockProduct() {
+
+        adminService.login("admin", "admin123");
+
+        vendingMachine.stockProduct(1, 5);
+
+        assertEquals(8, chips.getQuantity());
+    }
+
+    @Test
+    void invalidAdminLoginShouldBeRejected() {
+
+        assertFalse(adminService.login("admin", "wrongpassword"));
+
+        assertFalse(adminService.isAuthenticated());
+    }
+
+    @Test
+    void loggedOutAdminShouldNotBeAbleToStockProduct() {
+
+        adminService.login("admin", "admin123");
+
+        adminService.logout();
+
+        assertThrows(
+                SecurityException.class,
+                () -> vendingMachine.stockProduct(1, 5)
         );
 
         assertEquals(3, chips.getQuantity());
