@@ -294,4 +294,74 @@ class VendingMachineImplTest {
         assertNotNull(transaction.getTimestamp());
     }
 
+    // Stock product should increase in quantity
+    @Test
+    void stockProductShouldIncreaseQuantity() {
+        vendingMachine.stockProduct(1, 5);
+
+        assertEquals(8, chips.getQuantity());
+    }
+
+    // Stock product should record transaction
+    @Test
+    void stockProductShouldRecordTransaction() {
+        vendingMachine.stockProduct(1, 5);
+
+        List<Transaction> history =
+                vendingMachine.getTransactionHistory();
+
+        assertEquals(1, history.size());
+        assertEquals("STOCKING", history.get(0).getType());
+        assertEquals(5, history.get(0).getAmount());
+        assertEquals(
+                "Chips (ID: 1), added: 5",
+                history.get(0).getDescription()
+        );
+    }
+
+    // Stock product should reject invalid quantity
+    @Test
+    void stockProductShouldRejectInvalidQuantity() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> vendingMachine.stockProduct(1, 0)
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> vendingMachine.stockProduct(1, -5)
+        );
+
+        assertEquals(3, chips.getQuantity());
+    }
+
+    // Stock product should fail when a product does not exist
+    @Test
+    void stockProductShouldFailWhenProductDoesNotExist() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> vendingMachine.stockProduct(99, 5)
+        );
+    }
+
+    // Multiple stocking operations should accumulate quantity
+    @Test
+    void multipleStockingOperationsShouldAccumulateQuantity() {
+        vendingMachine.stockProduct(1, 5);
+        vendingMachine.stockProduct(1, 10);
+
+        assertEquals(18, chips.getQuantity());
+    }
+
+    // Stock product should reject integer overflow
+    @Test
+    void stockProductShouldRejectIntegerOverflow() {
+        assertThrows(
+                ArithmeticException.class,
+                () -> vendingMachine.stockProduct(1, Integer.MAX_VALUE)
+        );
+
+        assertEquals(3, chips.getQuantity());
+    }
+
 }

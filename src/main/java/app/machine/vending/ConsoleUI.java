@@ -31,7 +31,8 @@ public class ConsoleUI {
             System.out.println("[3] Return change");
             System.out.println("[4] Display products");
             System.out.println("[5] Display transaction history");
-            System.out.println("[6] Exit");
+            System.out.println("[6] Stock product");
+            System.out.println("[7] Exit");
 
             System.out.print("\n> ");
 
@@ -44,7 +45,8 @@ public class ConsoleUI {
                     case "3" -> returnChange();
                     case "4" -> displayProducts();
                     case "5" -> displayTransactionHistory();
-                    case "6" -> running = false;
+                    case "6" -> stockProduct();
+                    case "7" -> running = false;
                     default -> System.out.println(
                             "Invalid option. Please try again."
                     );
@@ -144,5 +146,26 @@ public class ConsoleUI {
         }
 
         System.out.println("=========================================");
+    }
+
+    private void stockProduct() {
+        System.out.print("Enter product ID: ");
+
+        int id = Integer.parseInt(scanner.nextLine().trim());
+
+        System.out.print("Enter quantity to add: ");
+
+        int quantity = Integer.parseInt(scanner.nextLine().trim());
+
+        try {
+            vendingMachine.stockProduct(id, quantity);
+
+            System.out.println("Product successfully restocked.");
+
+            displayProducts();
+
+        } catch (IllegalArgumentException | ArithmeticException e) {
+            System.out.println("Stocking failed: " + e.getMessage());
+        }
     }
 }

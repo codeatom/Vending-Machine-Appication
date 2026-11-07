@@ -37,9 +37,12 @@ public class Transaction {
     public String toString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+        String unit = type.equals("STOCKING") ? " units" : " kr";
+
         return timestamp.format(formatter) +
                 " | " + type +
                 " | " + description +
-                " | " + amount + " kr";
+                " | " + amount + unit;
     }
+
 }

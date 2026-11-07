@@ -72,7 +72,11 @@ public class VendingMachineImpl implements VendingMachine {
 
         // Record successful purchase.
         transactionRepository.addTransaction(
-                new Transaction("PURCHASE", product.getName() + " (ID: " + product.getId() + ")", product.getPrice())
+                new Transaction(
+                        "PURCHASE",
+                        product.getName() + " (ID: " + id + ")",
+                        product.getPrice()
+                )
         );
 
         return product;
@@ -81,16 +85,46 @@ public class VendingMachineImpl implements VendingMachine {
     @Override
     public int returnChange() {
         int change = balance;
+        balance = 0;
 
         if (change > 0) {
             transactionRepository.addTransaction(
-                    new Transaction("CHANGE RETURNED", "Returned change", change)
+                    new Transaction(
+                            "CHANGE RETURNED",
+                            "Returned remaining balance",
+                            change
+                    )
             );
         }
 
-        balance = 0;
-
         return change;
+    }
+
+    @Override
+    public void stockProduct(int id, int quantity) {
+
+        if (quantity <= 0) {
+            throw new IllegalArgumentException(
+                    "Stocking quantity must be positive."
+            );
+        }
+
+        Product product = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Product with ID " + id + " does not exist."
+                ));
+
+        // Increase product stock.
+        product.increaseQuantity(quantity);
+
+        // Record stocking transaction.
+        transactionRepository.addTransaction(
+                new Transaction(
+                        "STOCKING",
+                        product.getName() + " (ID: " + id + "), added: " + quantity,
+                        quantity
+                )
+        );
     }
 
     @Override
