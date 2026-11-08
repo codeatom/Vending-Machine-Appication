@@ -5,6 +5,7 @@ import app.machine.vending.model.Transaction;
 import app.machine.vending.repository.ProductRepository;
 import app.machine.vending.repository.TransactionRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -12,18 +13,20 @@ import java.util.Set;
 public class VendingMachineImpl implements VendingMachine {
 
     private int balance;
-    private final ProductRepository repository;
+    private final ProductRepository productRepository;
     private final TransactionRepository transactionRepository;
     private final AdminService adminService;
 
     private final Set<Integer> acceptedCoins = Set.of(1, 2, 5, 10, 20, 50);
+
+    private static final int LOW_STOCK_THRESHOLD = 3;
 
     public VendingMachineImpl(
             ProductRepository repository,
             TransactionRepository transactionRepository,
             AdminService adminService) {
 
-        this.repository = Objects.requireNonNull(repository);
+        this.productRepository = Objects.requireNonNull(repository);
         this.transactionRepository = Objects.requireNonNull(transactionRepository);
         this.adminService = Objects.requireNonNull(adminService);
 
@@ -52,7 +55,7 @@ public class VendingMachineImpl implements VendingMachine {
 
     @Override
     public Product purchaseProduct(int id) {
-        Product product = repository.findById(id)
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Product with ID " + id + " does not exist."));
 
@@ -120,7 +123,7 @@ public class VendingMachineImpl implements VendingMachine {
             );
         }
 
-        Product product = repository.findById(id)
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Product with ID " + id + " does not exist."
                 ));
@@ -137,13 +140,27 @@ public class VendingMachineImpl implements VendingMachine {
     }
 
     @Override
+    public List<Product> getLowStockProducts() {
+        List<Product> products = productRepository.findAll();
+        List<Product> lowStockProducts = new ArrayList<>();
+
+        for (Product product : products) {
+            if (product.getQuantity() < LOW_STOCK_THRESHOLD) {
+                lowStockProducts.add(product);
+            }
+        }
+
+        return lowStockProducts;
+    }
+
+    @Override
     public int getBalance() {
         return balance;
     }
 
     @Override
     public List<Product> getProducts() {
-        return repository.findAll();
+        return productRepository.findAll();
     }
 
     @Override

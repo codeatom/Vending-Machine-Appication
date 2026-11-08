@@ -20,4 +20,6 @@ public interface VendingMachine {
     List<Transaction> getTransactionHistory();
 
     void stockProduct(int id, int quantity);
+
+    List<Product> getLowStockProducts();
 }

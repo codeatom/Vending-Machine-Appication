@@ -4,6 +4,7 @@ import app.machine.vending.model.*;
 import app.machine.vending.repository.*;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -302,7 +303,7 @@ class VendingMachineImplTest {
 
     // Stock product should increase in quantity.
     @Test
-    void stockProductShouldIncreaseQuantity() {
+    void reStockProductShouldIncreaseQuantity() {
         loginAsAdmin();
 
         vendingMachine.stockProduct(1, 5);
@@ -313,7 +314,7 @@ class VendingMachineImplTest {
 
     // Stock product should record transaction.
     @Test
-    void stockProductShouldRecordTransaction() {
+    void reStockProductShouldRecordTransaction() {
         loginAsAdmin();
 
         vendingMachine.stockProduct(1, 5);
@@ -334,7 +335,7 @@ class VendingMachineImplTest {
 
     // Stock product should reject invalid quantity.
     @Test
-    void stockProductShouldRejectInvalidQuantity() {
+    void reStockProductShouldRejectInvalidQuantity() {
         loginAsAdmin();
 
         assertThrows(
@@ -350,10 +351,9 @@ class VendingMachineImplTest {
         assertEquals(3, chips.getQuantity());
     }
 
-
     // Stock product should fail when product does not exist.
     @Test
-    void stockProductShouldFailWhenProductDoesNotExist() {
+    void reStockProductShouldFailWhenProductDoesNotExist() {
         loginAsAdmin();
 
         assertThrows(
@@ -376,7 +376,7 @@ class VendingMachineImplTest {
 
     // Stock product should reject integer overflow.
     @Test
-    void stockProductShouldRejectIntegerOverflow() {
+    void reStockProductShouldRejectIntegerOverflow() {
         loginAsAdmin();
 
         assertThrows(
@@ -388,7 +388,7 @@ class VendingMachineImplTest {
     }
 
     @Test
-    void stockProductShouldRequireAdminAuthentication() {
+    void reStockProductShouldRequireAdminAuthentication() {
 
         assertThrows(
                 SecurityException.class,
@@ -431,4 +431,44 @@ class VendingMachineImplTest {
         assertEquals(3, chips.getQuantity());
     }
 
+    @Test
+    @DisplayName("Detect products with low stock")
+    public void testLowStockProducts() {
+
+        // Reduce Cola stock from 3 to 2
+        vendingMachine.insertCoin(20);
+        vendingMachine.purchaseProduct(2);
+
+        List<Product> lowStock = vendingMachine.getLowStockProducts();
+
+        assertEquals(1, lowStock.size());
+        assertEquals("Cola", lowStock.get(0).getName());
+    }
+
+    @Test
+    @DisplayName("No products have low stock")
+    public void testNoLowStockProducts() {
+
+        List<Product> lowStock = vendingMachine.getLowStockProducts();
+
+        assertTrue(lowStock.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Out-of-stock products appear in low-stock list")
+    public void testOutOfStockProducts() {
+
+        vendingMachine.insertCoin(50);
+        vendingMachine.insertCoin(10);
+
+        vendingMachine.purchaseProduct(2);
+        vendingMachine.purchaseProduct(2);
+        vendingMachine.purchaseProduct(2);
+
+        List<Product> lowStock = vendingMachine.getLowStockProducts();
+
+        assertTrue(
+                lowStock.stream().anyMatch(p -> p.getId() == 2)
+        );
+    }
 }
